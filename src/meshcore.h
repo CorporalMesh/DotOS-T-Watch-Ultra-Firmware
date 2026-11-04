@@ -7,12 +7,12 @@
 #define MESH_MAX_TEXT_LEN 200
 
 struct MeshMessage {
-    int      channel_idx;  
+    int      channel_idx;
     uint32_t from_node;
-    uint32_t dest_node;     
-                            
+    uint32_t dest_node;
+
     char     text[MESH_MAX_TEXT_LEN];
-    char     time_str[6];   
+    char     time_str[6];
 
     float    rssi;
     float    snr;
@@ -50,7 +50,7 @@ struct MeshOutgoing {
     uint8_t  error_reason;
 };
 int                  meshcore_get_outgoing_count();
-const MeshOutgoing  *meshcore_get_outgoing(int idx);     
+const MeshOutgoing  *meshcore_get_outgoing(int idx);
 
 const char          *meshcore_routing_error_name(uint8_t reason);
 
@@ -58,8 +58,8 @@ const char          *meshcore_routing_error_name(uint8_t reason);
 struct MeshChannel {
     char    name[32];
     uint8_t psk[32];
-    uint8_t psk_len;       
-    uint8_t channel_hash;  
+    uint8_t psk_len;
+    uint8_t channel_hash;
     bool    enabled;
 };
 const MeshChannel *meshcore_get_channel(int idx);
@@ -73,7 +73,7 @@ void               meshcore_save_channels_to_sd();
 bool                 meshcore_request_position(uint32_t dest_node);
 
 #define MESH_MAX_LONG_NAME  32
-#define MESH_MAX_SHORT_NAME  5   
+#define MESH_MAX_SHORT_NAME  5
 
 void        meshcore_set_long_name(const char *name);
 void        meshcore_set_short_name(const char *name);
@@ -94,31 +94,31 @@ struct MeshNeighbor {
 
 struct MeshNode {
     uint32_t node_id;
-    char     id[16];                          
-    char     long_name[MESH_MAX_LONG_NAME];   
-    char     short_name[MESH_MAX_SHORT_NAME]; 
-    uint8_t  macaddr[6];                      
+    char     id[16];
+    char     long_name[MESH_MAX_LONG_NAME];
+    char     short_name[MESH_MAX_SHORT_NAME];
+    uint8_t  macaddr[6];
     bool     has_macaddr;
-    uint32_t hw_model;                        
+    uint32_t hw_model;
     bool     has_hw_model;
-    bool     is_licensed;                     
+    bool     is_licensed;
     bool     has_is_licensed;
-    uint32_t role;                            
+    uint32_t role;
     bool     has_role;
-    uint8_t  public_key[32];                  
+    uint8_t  public_key[32];
     uint8_t  public_key_len;
 
     int32_t  latitude_i;
     int32_t  longitude_i;
     bool     has_position;
-    int32_t  altitude;                        
+    int32_t  altitude;
     bool     has_altitude;
-    char     time_str[6];                     
-    char     disco_ts[16];                    
+    char     time_str[6];
+    char     disco_ts[16];
 
     bool     has_telemetry;
-    uint32_t battery_level;                   bool has_battery_level;  
-    float    voltage;                         bool has_voltage;        
+    uint32_t battery_level;                   bool has_battery_level;
+    float    voltage;                         bool has_voltage;
     uint32_t uptime_seconds;                  bool has_uptime;
 
     bool     has_environment;
@@ -140,14 +140,14 @@ struct MeshNode {
 const char *meshcore_role_name(uint32_t role);
 
 int             meshcore_get_node_count();
-const MeshNode *meshcore_get_node(int idx); 
+const MeshNode *meshcore_get_node(int idx);
 
-int  meshcore_get_count();      
-int  meshcore_get_rx_count();   
+int  meshcore_get_count();
+int  meshcore_get_rx_count();
 int  meshcore_get_unread();
 void meshcore_mark_read();
 
-const MeshMessage *meshcore_get_message(int idx); 
+const MeshMessage *meshcore_get_message(int idx);
 
 void meshcore_clear_messages();
 
@@ -156,19 +156,19 @@ bool meshcore_delete_message(int idx);
 float    meshcore_get_rssi();
 bool     meshcore_get_cad();
 bool     meshcore_is_active();
-uint32_t meshcore_get_node_id();  
+uint32_t meshcore_get_node_id();
 
 struct MeshDebugInfo {
-    int      isr_count;       
-    int      rx_ok;           
-    int      rx_fail;         
-    int16_t  rx_last_rc;      
-    int      rx_last_pkt_len; 
-    int      parse_ok;        
-    int      nodeinfo_tx;     
-    uint32_t last_portnum;    
-    uint8_t  last_plain0;     
-    uint8_t  last_plain1;     
+    int      isr_count;
+    int      rx_ok;
+    int      rx_fail;
+    int16_t  rx_last_rc;
+    int      rx_last_pkt_len;
+    int      parse_ok;
+    int      nodeinfo_tx;
+    uint32_t last_portnum;
+    uint8_t  last_plain0;
+    uint8_t  last_plain1;
 };
 const MeshDebugInfo *meshcore_get_debug();
 

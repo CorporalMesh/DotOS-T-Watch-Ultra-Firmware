@@ -53,8 +53,13 @@
 # focused on what actually builds the firmware. (Applies to tags cut after this
 # lands; already-published releases keep their old archive.)
 /sim              export-ignore
-/test             export-ignore
-/docs             export-ignore
 /.github          export-ignore
 /.vscode          export-ignore
 /find_mesh_key.py export-ignore
+
+# Keep vendored MeshCore/ed25519 byte-identical to their pinned upstream.
+lib/MeshCore/** -whitespace
+lib/ed25519/** -whitespace
+src/meshcore_companion/MyMesh.* -whitespace
+src/meshcore_companion/DataStore.* -whitespace
+src/meshcore_companion/NodePrefs.h -whitespace

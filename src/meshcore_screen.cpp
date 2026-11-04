@@ -164,8 +164,12 @@ static void make_message_entry(lv_obj_t *parent, const MeshMessage *msg, int idx
     // purple instead of green so they're scannable in a busy list.
     const char *prefix = to_me ? "DM " : "";
     char header[40];
-    snprintf(header, sizeof(header), "%s!%08lx   %s",
-             prefix, (unsigned long)msg->from_node, msg->time_str);
+    if (msg->channel_idx >= 0) {
+        const MeshChannel* channel = meshcore_get_channel(msg->channel_idx);
+        snprintf(header,sizeof(header),"%s   %s",channel?channel->name:"Channel",msg->time_str);
+    } else {
+        snprintf(header,sizeof(header),"%s%08lx   %s",prefix,(unsigned long)msg->from_node,msg->time_str);
+    }
     lv_obj_t *hdr = lv_label_create(entry);
     lv_obj_set_width(hdr, lv_pct(100));
     lv_obj_set_style_text_color(hdr,
@@ -195,15 +199,7 @@ static void make_message_entry(lv_obj_t *parent, const MeshMessage *msg, int idx
         int  p = 0;
         p += snprintf(qual + p, sizeof(qual) - p, "RSSI %.0f dBm  SNR %.1f dB",
                       (double)msg->rssi, (double)msg->snr);
-        if (msg->hop_start > 0) {
-            uint8_t traversed = (msg->hop_start >= msg->hop_limit)
-                ? (msg->hop_start - msg->hop_limit) : 0;
-            p += snprintf(qual + p, sizeof(qual) - p, "  Hops %u/%u",
-                          (unsigned)traversed, (unsigned)msg->hop_start);
-        } else if (msg->hop_limit > 0) {
-            p += snprintf(qual + p, sizeof(qual) - p, "  HopLimit %u",
-                          (unsigned)msg->hop_limit);
-        }
+        p += snprintf(qual + p,sizeof(qual)-p,"  Hops %u",(unsigned)msg->hop_start);
         lv_obj_t *q = lv_label_create(entry);
         lv_obj_set_width(q, lv_pct(100));
         lv_obj_set_style_text_color(q, ARGUS_TEXT_DIM, LV_PART_MAIN);

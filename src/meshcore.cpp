@@ -55,7 +55,7 @@ void append_message(uint32_t from, uint32_t dest, const char* text, mesh::Packet
  msg.from_node = from; msg.dest_node = dest;
  msg.channel_idx = channel;
  strlcpy(msg.text, text, sizeof(msg.text)); time_label(msg.time_str, sizeof(msg.time_str));
- msg.rssi = radio_driver.getLastRSSI(); msg.snr = radio_driver.getLastSNR();
+ msg.rssi = pkt ? radio_driver.getLastRSSI() : NAN; msg.snr = pkt ? radio_driver.getLastSNR() : NAN;
  msg.hop_start = pkt && pkt->isRouteFlood() ? pkt->getPathHashCount() : 0;
  count = std::min(count+1, MESH_MAX_MESSAGES);
  bool incoming = from != node_id(watch_mesh->self_id.pub_key);

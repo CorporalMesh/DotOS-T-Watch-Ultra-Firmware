@@ -6,6 +6,12 @@ MeshCore `companion-v1.18.0` core and companion protocol, pinned to commit
 
 ## Build and installation
 
+Browser installation: open the [MeshCore web flasher](https://corporalmesh.github.io/DotOS-T-Watch-Ultra-Firmware/)
+in desktop Chrome/Edge. Hold BOOT while connecting USB-C, choose the watch port,
+then Install DotOS MeshCore. Leave Erase device unchecked; restart when done.
+The release also provides a self-contained `dotos-meshcore-flasher.html` that
+can be downloaded and opened locally/offline in Chrome or Edge.
+
 Use the `codex/meshcore-1.18` branch, not upstream's binary-only `main` branch.
 
 ```sh

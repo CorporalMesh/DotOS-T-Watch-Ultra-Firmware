@@ -1,5 +1,10 @@
 # Installing this MeshCore fork
 
+Open the [MeshCore web flasher](https://corporalmesh.github.io/DotOS-T-Watch-Ultra-Firmware/) in desktop Chrome or Edge.
+Hold BOOT while connecting the watch by USB-C, select its serial port, then
+choose Install DotOS MeshCore. Leave Erase device unchecked to retain settings.
+Restart the watch when finished.
+
 Use [the MeshCore build and pairing instructions](docs/MESHCORE.md). The upstream
 DotOS web flasher contains Meshtastic firmware and does not install this fork.
 Build with `pio run -e twatch_ultra` and upload with

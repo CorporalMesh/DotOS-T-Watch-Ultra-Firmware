@@ -9,6 +9,9 @@ Meshtastic while retaining the DotOS watch interface.
   incoming-message queue, and phone-sent messages on the watch.
 - Pairing PIN and phone-sync controls: tap the **MeshCore screen title**.
 
+Install in desktop Chrome/Edge with the [web flasher](https://corporalmesh.github.io/DotOS-T-Watch-Ultra-Firmware/).
+An [offline HTML installer](https://github.com/CorporalMesh/DotOS-T-Watch-Ultra-Firmware/releases/download/meshcore-v1.18.0-dotos-alpha.1/dotos-meshcore-flasher.html) is also attached to the release.
+
 See [MeshCore build, pairing, limitations and hardware checklist](docs/MESHCORE.md).
 This fork is experimental and requires physical-watch validation. Use source
 builds from this branch; upstream's flasher still contains Meshtastic firmware.

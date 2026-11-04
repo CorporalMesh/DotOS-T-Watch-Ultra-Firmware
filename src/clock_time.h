@@ -3,7 +3,7 @@
 // clock_time.h - pure clock arithmetic for the ARGUS watch face.
 //
 // THE INVARIANT
-// The RTC always holds UTC. The clock face, the world clock, the Meshtastic
+// The RTC always holds UTC. The clock face, the world clock, the MeshCore
 // screen and every SD log stamp derive local time as UTC + offset, where the
 // offset is discovered from GPS longitude or IP geolocation and persisted to
 // /Settings/timezone.txt.

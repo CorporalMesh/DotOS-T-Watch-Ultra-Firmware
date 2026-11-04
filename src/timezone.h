@@ -6,7 +6,7 @@
 //
 // INVARIANT: the RTC always holds UTC. clock_utc_offset (in main.cpp / the
 // clock screen) shifts it to local time for display, and the world clock,
-// Meshtastic and the SD log stamps all rely on the RTC half being UTC.
+// MeshCore and the SD log stamps all rely on the RTC half being UTC.
 // Everything that writes the RTC -- GPS, NTP, the firmware-build-time
 // fallback, and Manual Time -- must therefore write UTC and leave an offset
 // behind that maps it back to local.

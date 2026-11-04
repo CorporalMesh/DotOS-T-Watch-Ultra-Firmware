@@ -10,7 +10,7 @@
 #include "world_clock_screen.h"
 #include "sun_moon_screen.h"
 #include "flashlight_screen.h"
-#include "meshtastic_screen.h"
+#include "meshcore_screen.h"
 #include "settings_screen.h"
 #include "notifications_screen.h"
 #include "health_screen.h"
@@ -626,9 +626,9 @@ static void draw_flashlight_icon(lv_obj_t *tile)
     }
 }
 
-// Meshtastic — three mesh nodes (one lit green) joined by links.
-// Procedural fallback for /Icons/meshtastic.png.
-static void draw_meshtastic_icon(lv_obj_t *tile)
+// MeshCore — three mesh nodes (one lit green) joined by links.
+// Procedural fallback for /Icons/meshcore.png.
+static void draw_meshcore_icon(lv_obj_t *tile)
 {
     tile = icon_layer(tile);
     lv_color_t steel = ARGUS_ACCENT;
@@ -705,7 +705,7 @@ static void draw_settings_icon(lv_obj_t *tile)
 }
 
 // Notification bell — gold dome + rim with a clapper, in the same procedural
-// style as the other Daily-app icons (Flashlight/Meshtastic/Settings), so no SD
+// style as the other Daily-app icons (Flashlight/MeshCore/Settings), so no SD
 // sprite is needed. tt_recolor_red tints it solid red in Offense like the rest.
 static void draw_notify_icon(lv_obj_t *tile)
 {
@@ -867,24 +867,24 @@ void time_screen_create()
     lv_obj_add_event_cb(t_world,     [](lv_event_t *) { world_clock_screen_show(); }, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(t_sunmoon,   [](lv_event_t *) { sun_moon_screen_show();  }, LV_EVENT_CLICKED, NULL);
 
-    // Daily-wear utilities: Flashlight (torch), Meshtastic (comms) and Settings.
+    // Daily-wear utilities: Flashlight (torch), MeshCore (comms) and Settings.
     // The Time hub is the one app grid reachable in Daily mode (Tools is gated),
     // so these benign apps live here alongside the clock tools.
     lv_obj_t *t_health = make_tile(grid, "Health");
     lv_obj_t *t_flash  = make_tile(grid, "Flashlight");
-    lv_obj_t *t_mesh   = make_tile(grid, "Meshtastic");
+    lv_obj_t *t_mesh   = make_tile(grid, "MeshCore");
     lv_obj_t *t_notify = make_tile(grid, "Notify");
     lv_obj_t *t_set    = make_tile(grid, "Settings");
 
     tile_icon(t_health, "health",     draw_health_icon);
     tile_icon(t_flash,  "flashlight", draw_flashlight_icon);
-    tile_icon(t_mesh,   "meshtastic", draw_meshtastic_icon);
+    tile_icon(t_mesh,   "meshcore", draw_meshcore_icon);
     tile_icon(t_notify, "notify",     draw_notify_icon);
     tile_icon(t_set,    "settings",   draw_settings_icon);
 
     lv_obj_add_event_cb(t_health, [](lv_event_t *) { health_screen_show();        }, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(t_flash,  [](lv_event_t *) { flashlight_screen_show();    }, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(t_mesh,   [](lv_event_t *) { meshtastic_screen_show();    }, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(t_mesh,   [](lv_event_t *) { meshcore_screen_show();    }, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(t_notify, [](lv_event_t *) { notifications_screen_show(); }, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(t_set,    [](lv_event_t *) { settings_screen_show();      }, LV_EVENT_CLICKED, NULL);
 

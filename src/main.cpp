@@ -12,8 +12,8 @@
 #include <math.h>
 #include "gps_screen.h"
 #include "lora_screen.h"
-#include "meshtastic.h"
-#include "meshtastic_screen.h"
+#include "meshcore.h"
+#include "meshcore_screen.h"
 #include "nodes_screen.h"
 #include "send_message_screen.h"
 #include "map_screen.h"
@@ -218,7 +218,7 @@ static lv_obj_t *dot_nfc_label  = nullptr;
 // Notifications button: an accent-coloured hard square in the bottom-RIGHT
 // corner of the Dot face, shown (and tappable -> notifications screen) only
 // while there are unread notifications (phone notifs beyond the last-seen
-// baseline, or unread Meshtastic messages), and hidden entirely once they are
+// baseline, or unread MeshCore messages), and hidden entirely once they are
 // marked read. Replaces the old top-right red count pill.
 static lv_obj_t *dot_notif_btn = nullptr;   // invisible, finger-sized tap target
 static lv_obj_t *dot_notif_sq  = nullptr;   // the visible accent square inside it
@@ -859,7 +859,7 @@ static void dot_draw_gps(uint32_t *b, int w, int h, uint32_t c)
 
 // Leftmost status icon: a small filled heart at cx=63 that lights when the
 // phone relay is actively feeding health data (red = live, gray = idle). It
-// fills the far-left corner of the status row; the Meshtastic unread pill sits
+// fills the far-left corner of the status row; the MeshCore unread pill sits
 // just to its right. Two round lobes plus a downward point, the classic
 // silhouette.
 static void dot_draw_heart(uint32_t *b, int w, int h, uint32_t c)
@@ -908,21 +908,21 @@ static void build_dot_status_row(lv_obj_t *parent)
 // envelope clears on return. Accent colour is re-applied by
 // clock_screen_apply_face_custom().
 // Unread = phone notifications beyond the last-seen baseline, or any unread
-// Meshtastic message. The baseline can only be as high as the current stored count
+// MeshCore message. The baseline can only be as high as the current stored count
 // (notifs may be retracted or cleared), so it is clamped down first.
 bool clock_has_unread_notifications()
 {
     int n = (int)notify::center().count();
     if (n < 0) n = 0;
     if ((uint32_t)n < s_notif_seen) s_notif_seen = (uint32_t)n;
-    return ((uint32_t)n > s_notif_seen) || (meshtastic_get_unread() > 0);
+    return ((uint32_t)n > s_notif_seen) || (meshcore_get_unread() > 0);
 }
 
 // Mark the current batch seen; used by every way of opening the notification list.
 void clock_notifications_acknowledge()
 {
     s_notif_seen = (uint32_t)notify::center().count();
-    meshtastic_mark_read();
+    meshcore_mark_read();
 }
 
 static void on_dot_notif_clicked(lv_event_t *)
@@ -1013,7 +1013,7 @@ static void update_dot_status()
     bool gps  = gps_screen_is_powered();
     bool hlth = health_data_fresh();
     // Unread indicator (drives the bottom-left envelope): phone notifications
-    // beyond the last-seen baseline, or any unread Meshtastic message. The
+    // beyond the last-seen baseline, or any unread MeshCore message. The
     // baseline can only be as high as the current stored count (notifs may be
     // retracted or cleared), so clamp it down first.
     bool has_unread = clock_has_unread_notifications();
@@ -1210,7 +1210,7 @@ static void update_dot_usb()
 // When the watch is unplugged the USB dot line has nothing to show, so it is
 // replaced by two tiles the wearer picks (tap a slot -> choose an indicator;
 // long-press to re-pick). Choices persist in NVS (dot_tiles.*). One indicator is
-// a button (Meshtastic) whose tap opens the chat; the rest are read-outs mirrored
+// a button (MeshCore) whose tap opens the chat; the rest are read-outs mirrored
 // from the health model. Plugged back in, the charge/data wave reclaims the row.
 static lv_obj_t *dot_tile_hit[2] = { nullptr, nullptr };
 static lv_obj_t *dot_tile_tag[2] = { nullptr, nullptr };
@@ -1224,7 +1224,7 @@ static const DotTileDef kDotTileDefs[] = {
     { DOT_TILE_STEP_GOAL, "GOAL",  "Step goal"      },
     { DOT_TILE_STEPS,     "STEPS", "Daily steps"    },
     { DOT_TILE_BPM,       "BPM",   "BPM (high/low)" },
-    { DOT_TILE_MESH,      "LoRa",  "Meshtastic chat"},
+    { DOT_TILE_MESH,      "LoRa",  "MeshCore chat"},
     { DOT_TILE_FIND,      "FIND",  "Find (ring phone)"},
 };
 static constexpr int DOT_TILE_DEF_N = sizeof(kDotTileDefs) / sizeof(kDotTileDefs[0]);
@@ -1241,7 +1241,7 @@ static void on_dot_tile_short(lv_event_t *e)
     DotTileKind k = dot_tiles_get(s);
     // Button tiles act on tap; a read-out tile (or empty slot) opens the picker
     // so a plain tap can (re)choose it.
-    if (k == DOT_TILE_MESH) { meshtastic_screen_show(); return; }
+    if (k == DOT_TILE_MESH) { meshcore_screen_show(); return; }
     if (k == DOT_TILE_FIND) {
         bool ok = find_ring_phone();
         sys_notify(SYS_UID_FIND, "Find",
@@ -1329,7 +1329,7 @@ static void dot_tile_render(int s)
     }
     lv_obj_clear_flag(tag, LV_OBJ_FLAG_HIDDEN);
 
-    // Meshtastic button: title + envelope glyph, always "live" (white).
+    // MeshCore button: title + envelope glyph, always "live" (white).
     if (k == DOT_TILE_MESH) {
         lv_obj_set_style_text_color(tag, dot_white(), LV_PART_MAIN);
         lv_label_set_text(tag, "LoRa");
@@ -1865,7 +1865,7 @@ static inline lv_color_t status_accent_active()
 
 static void update_lora_indicator()
 {
-    // Green whenever the shared SX1262 radio is in use — by LoRa/meshtastic,
+    // Green whenever the shared SX1262 radio is in use — by LoRa/meshcore,
     // the pager scanner, the TPMS scanner, APRS, or the LoRa analyzer.
     bool in_use = lora_screen_is_powered() || pager_is_running()
                || tpms_is_running() || aprs_is_running()
@@ -2311,13 +2311,13 @@ static void on_clock_gesture(lv_event_t *e)
 {
     lv_indev_t *indev = lv_event_get_indev(e);
     lv_dir_t dir = lv_indev_get_gesture_dir(indev);
-    // Daily keeps the innocent surfaces reachable. Meshtastic (mesh comms) and Time
+    // Daily keeps the innocent surfaces reachable. MeshCore (mesh comms) and Time
     // are day-to-day features allowed in every mode; Wardriver (recon) and the Tools
     // grid are gated to Defense/Offense so a Daily glance/confiscation reveals nothing.
     //
     // Home navigation:
     //   swipe right-to-left  -> the "Menu" (unified launcher: category list)
-    //   swipe left-to-right  -> Wardriver (recon, gated in Daily -> Meshtastic)
+    //   swipe left-to-right  -> Wardriver (recon, gated in Daily -> MeshCore)
     //   swipe down           -> notification shade (every mode)
     //   swipe up             -> straight into the "Apps" sub-menu (shortcut)
     bool daily = (argus_mode_current() == ArgusMode::Daily);
@@ -2327,8 +2327,8 @@ static void on_clock_gesture(lv_event_t *e)
         if (!daily) {
             wardriver_screen_show();           // recon, gated in Daily
         } else {
-            meshtastic_mark_read();            // comms, available in every mode
-            meshtastic_screen_show();
+            meshcore_mark_read();            // comms, available in every mode
+            meshcore_screen_show();
         }
     } else if (dir == LV_DIR_BOTTOM) {   // swipe down from clock face
         notifications_screen_show();     // shade: notifications + brightness, every mode
@@ -2459,7 +2459,7 @@ static void update_scan_indicators()
     }
 }
 
-// Called by meshtastic.cpp when a new message arrives or all are read
+// Called by meshcore.cpp when a new message arrives or all are read
 void clock_screen_set_mesh_count(int count)
 {
     if (!mesh_top_count_label) return;
@@ -3384,7 +3384,7 @@ void clock_screen_get_local_time(struct tm *out)
 }
 
 // Apply a user-entered LOCAL date/time. The RTC always holds UTC (the world
-// clock, Meshtastic and the SD log stamps all read it as UTC), so convert with
+// clock, MeshCore and the SD log stamps all read it as UTC), so convert with
 // the offset currently in force and keep that offset rather than zeroing it.
 // Persisting the offset is what makes the setting survive a reboot: it used to
 // be dropped to 0 in RAM only, so the next boot re-applied the last
@@ -3804,7 +3804,7 @@ void setup()
     // LoRa antenna indicator (leftmost) — composite widget built separately
     build_lora_indicator(clock_screen);
 
-    // Unread-Meshtastic-message badge, sits to the immediate left of the
+    // Unread-MeshCore-message badge, sits to the immediate left of the
     // LoRa icon. White count on a red pill, hidden when count == 0.
     mesh_top_count_label = lv_label_create(clock_screen);
     lv_obj_set_style_text_color(mesh_top_count_label, lv_color_white(), LV_PART_MAIN);
@@ -4081,7 +4081,7 @@ void setup()
     lora_screen_create();
     nfc_screen_create();
     nfc_write_screen_create();
-    meshtastic_screen_create();
+    meshcore_screen_create();
     nodes_screen_create();
     send_message_screen_create();
     map_screen_create();
@@ -4156,9 +4156,9 @@ void setup()
 
     // Power button short press cycles forward through screens:
     //   - clock -> GPS -> LoRa -> WiFi -> Bluetooth -> NFC
-    //   - meshtastic -> nodes -> send_message -> map (when tiles exist)
+    //   - meshcore -> nodes -> send_message -> map (when tiles exist)
     //     -> configuration (the same chain swipe-RIGHT follows on the
-    //     Meshtastic family of screens, so the user can navigate via
+    //     MeshCore family of screens, so the user can navigate via
     //     buttons or gestures interchangeably)
     //   - settings -> clock
     instance.onEvent([](DeviceEvent_t event, void *params, void *user_data) {
@@ -4180,7 +4180,7 @@ void setup()
                 wifi_radio_screen_show();      // WiFi comes up second (coexistence order)
             else if (wifi_radio_screen_is_active())
                 nfc_screen_show();
-            else if (meshtastic_screen_is_active())
+            else if (meshcore_screen_is_active())
                 nodes_screen_show();
             else if (nodes_screen_is_active())
                 send_message_screen_show();
@@ -4201,11 +4201,11 @@ void setup()
     attachInterrupt(0, on_back_btn_isr, FALLING);
 
     sd_was_ready = instance.isCardReady(); // sync with whatever instance.begin() mounted
-    // Pull persisted meshtastic channel state off the SD card now
+    // Pull persisted meshcore channel state off the SD card now
     // that it's mounted. Safe before LoRa is enabled - channels are
-    // just data; meshtastic_set_active() reads from s_channels when
+    // just data; meshcore_set_active() reads from s_channels when
     // it starts transmitting.
-    meshtastic_load_channels_from_sd();
+    meshcore_load_channels_from_sd();
     // NOTE: the user's "Enable at boot" radios are brought up LOWER DOWN, AFTER
     // settings_screen_load() has enabled the wallpaper and we have forced it to
     // decode. Bringing a radio up here (before the wallpaper decodes) leaves too
@@ -4464,7 +4464,7 @@ void alarm_screen_show();
 void stopwatch_screen_show();
 void timer_screen_show();
 void calendar_screen_show();
-void meshtastic_screen_show();
+void meshcore_screen_show();
 void configuration_screen_show();
 
 // Recursively find the descendant with the largest vertical scroll range - the
@@ -4539,7 +4539,7 @@ static void screenshot_auto_run()
         { "04-notify",        notifications_screen_show },
         { "05-hexhound",      pet_screen_show           },
         { "06-settings",      settings_screen_show      },
-        { "07-meshtastic",    meshtastic_screen_show    },
+        { "07-meshcore",    meshcore_screen_show    },
         { "08-configuration", configuration_screen_show },
         { "09-alarm",         alarm_screen_show         },
         { "10-stopwatch",     stopwatch_screen_show     },
@@ -4591,8 +4591,8 @@ static void do_boot_back_action()
     } else if (send_message_screen_is_active()) {
         nodes_screen_show();
     } else if (nodes_screen_is_active()) {
-        meshtastic_screen_show();
-    } else if (meshtastic_screen_is_active()) {
+        meshcore_screen_show();
+    } else if (meshcore_screen_is_active()) {
         clock_screen_show();
     } else if (loot_screen_is_active()) {
         tools_screen_show();          // back to the Offense grid
@@ -4886,8 +4886,8 @@ void loop()
     if (lvgl_priority) s_lvgl_priority_cycles--;
 
 
+    meshcore_bg_tick();
     if (!lvgl_priority) {
-        meshtastic_bg_tick();
         // While the SD card is mounted over USB, the host owns the filesystem —
         // suspend the background loggers so the two sides never write at once.
         if (!usb_sd_is_running()) {

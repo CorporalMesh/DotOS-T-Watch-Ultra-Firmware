@@ -2,7 +2,7 @@
 #include "psram_array.h"
 #include "theme.h"
 #include "gps_screen.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include "gpx_track.h"
 #include "gpx_recorder.h"
 #include <LilyGoLib.h>
@@ -77,7 +77,7 @@ static bool   s_manual_pan = false;
 static double s_view_lat   = 0;
 static double s_view_lon   = 0;
 
-// Last-known GPS fix persisted to /Meshtastic/last_fix.txt so the map
+// Last-known GPS fix persisted to /MeshCore/last_fix.txt so the map
 // can open centred where we last had a position - even if GPS is off
 // or hasn't relocked. Loaded once on first map_screen_show(); written
 // from refresh() whenever a fresh live fix is observed, rate-limited
@@ -88,14 +88,14 @@ static double   s_saved_lon      = 0;
 static bool     s_saved_loaded   = false;
 static uint32_t s_last_save_ms   = 0;
 static const uint32_t kSaveIntervalMs = 60000;
-static const char    *kLastFixPath    = "/Meshtastic/last_fix.txt";
+static const char    *kLastFixPath    = "/MeshCore/last_fix.txt";
 
 static void save_last_fix(double lat, double lon)
 {
     uint32_t now = millis();
     if (s_last_save_ms != 0 && now - s_last_save_ms < kSaveIntervalMs) return;
     if (!instance.isCardReady()) return;
-    if (!SD.exists("/Meshtastic")) SD.mkdir("/Meshtastic");
+    if (!SD.exists("/MeshCore")) SD.mkdir("/MeshCore");
     File f = SD.open(kLastFixPath, FILE_WRITE);
     if (!f) return;
     f.printf("%.7f,%.7f\n", lat, lon);
@@ -221,13 +221,13 @@ static void hide_tiles()
 // is-our-own-node). view_lat/view_lon is the current map centre.
 static void render_peer_nodes(double view_lat, double view_lon)
 {
-    uint32_t self_id = meshtastic_get_node_id();
-    int n = meshtastic_get_node_count();
+    uint32_t self_id = meshcore_get_node_id();
+    int n = meshcore_get_node_count();
     int slot = 0;
     double lon_dpp = lon_per_px(s_zoom);
     double lat_dpp = lat_per_px(s_zoom, view_lat);
     for (int i = 0; i < n && slot < MESH_MAX_NODES; i++) {
-        const MeshNode *node = meshtastic_get_node(i);
+        const MeshNode *node = meshcore_get_node(i);
         if (!node) continue;
         if (!node->has_position) continue;
         if (node->node_id == self_id) continue;   // our own GPS marker

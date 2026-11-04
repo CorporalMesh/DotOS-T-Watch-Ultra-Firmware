@@ -91,7 +91,7 @@ bool aprs_start()
 {
     if (s_running) return true;
 
-    // The SX1262 is shared and can only be in one mode. Refuse if Meshtastic
+    // The SX1262 is shared and can only be in one mode. Refuse if MeshCore
     // holds it; stop the FSK scanners so they can't steal IRQs.
     if (lora_screen_is_powered()) { s_last_error = 0; return false; }
     pager_stop();

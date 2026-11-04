@@ -126,7 +126,7 @@ static bool start_analysis()
     s_last_radio_err = 0;
 
     if (lora_screen_is_powered()) {
-        // Meshtastic owns the radio — we refuse rather than fight for it.
+        // MeshCore owns the radio — we refuse rather than fight for it.
         s_start_error = true;
         return false;
     }
@@ -272,7 +272,7 @@ static void update_status()
 {
     if (s_start_error || !s_running) {
         if (lora_screen_is_powered()) {
-            lv_label_set_text(status_label, "LoRa radio in use - stop Meshtastic");
+            lv_label_set_text(status_label, "LoRa radio in use - stop MeshCore");
             lv_obj_set_style_text_color(status_label,
                 lv_color_make(0xFF, 0xAA, 0x00), LV_PART_MAIN);
         } else if (s_last_radio_err != 0) {

@@ -1,6 +1,7 @@
-#include "meshtastic_screen.h"
+#include "meshcore_screen.h"
 #include "theme.h"
-#include "meshtastic.h"
+#include "meshcore_phone_screen.h"
+#include "meshcore.h"
 #include "nodes_screen.h"
 #include "send_message_screen.h"
 #include "wardriver_screen.h"
@@ -40,7 +41,7 @@ static void on_gesture(lv_event_t *e)
 {
     lv_indev_t *indev = lv_event_get_indev(e);
     lv_dir_t dir = lv_indev_get_gesture_dir(indev);
-    // Left-to-right chain from the watch face: face -> Wardriver -> Meshtastic
+    // Left-to-right chain from the watch face: face -> Wardriver -> MeshCore
     // -> Nodes. Swiping back steps to the Wardriver, or straight home in Daily,
     // where the Wardriver is gated.
     if (dir == LV_DIR_LEFT) {
@@ -52,11 +53,11 @@ static void on_gesture(lv_event_t *e)
 }
 
 // Tap the "Clear All" link - wipes the in-memory ring. SD archive at
-// /Meshtastic/Messages/<timestamp>.txt is left intact, so every
+// /MeshCore/Messages/<timestamp>.txt is left intact, so every
 // received packet stays on the card forever.
 static void on_clear_pressed(lv_event_t *)
 {
-    meshtastic_clear_messages();
+    meshcore_clear_messages();
     rebuild_list();
 }
 
@@ -79,13 +80,17 @@ static void on_msg_clicked(lv_event_t *e)
 {
     auto target = (lv_obj_t *)lv_event_get_target(e);
     int idx = (int)(intptr_t)lv_obj_get_user_data(target);
-    const MeshMessage *m = meshtastic_get_message(idx);
+    const MeshMessage *m = meshcore_get_message(idx);
     if (!m) return;
     // Don't try to DM ourselves (e.g. the message-store path could
     // theoretically end up with our own node id; defensive). Also
     // don't DM the broadcast pseudo-address.
+    if (m->channel_idx >= 0) {
+        meshcore_set_active_channel(m->channel_idx);
+        send_message_screen_show_to(0xFFFFFFFFu); return;
+    }
     if (m->from_node == 0 || m->from_node == 0xFFFFFFFFu) return;
-    if (m->from_node == meshtastic_get_node_id()) return;
+    if (m->from_node == meshcore_get_node_id()) return;
     send_message_screen_show_to(m->from_node);
 }
 
@@ -94,7 +99,7 @@ static void on_confirm_delete(lv_event_t *)
     int idx = confirm_idx;
     hide_confirm();
     if (idx >= 0) {
-        meshtastic_delete_message(idx);
+        meshcore_delete_message(idx);
         rebuild_list();
     }
 }
@@ -118,7 +123,7 @@ static void make_message_entry(lv_obj_t *parent, const MeshMessage *msg, int idx
     // Anything else (0xFFFFFFFF broadcast or another node's id we happened
     // to overhear) is channel chatter.
     bool to_me = (msg->dest_node != 0xFFFFFFFFu &&
-                  msg->dest_node == meshtastic_get_node_id());
+                  msg->dest_node == meshcore_get_node_id());
 
     lv_obj_t *entry = lv_obj_create(parent);
     lv_obj_set_width(entry, lv_pct(100));
@@ -211,7 +216,7 @@ static void make_message_entry(lv_obj_t *parent, const MeshMessage *msg, int idx
 static void rebuild_list()
 {
     lv_obj_clean(msg_list);
-    int count = meshtastic_get_count();
+    int count = meshcore_get_count();
     if (count == 0) {
         lv_obj_t *lbl = lv_label_create(msg_list);
         lv_obj_add_flag(lbl, LV_OBJ_FLAG_FLOATING);  // exclude from flex layout so center works
@@ -222,7 +227,7 @@ static void rebuild_list()
         lv_obj_set_style_text_align(lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     } else {
         for (int i = 0; i < count; i++) {
-            const MeshMessage *m = meshtastic_get_message(i);
+            const MeshMessage *m = meshcore_get_message(i);
             if (m) make_message_entry(msg_list, m, i);
         }
     }
@@ -236,7 +241,7 @@ static void rebuild_list()
 static void show_confirm(int idx)
 {
     if (!confirm_overlay) return;
-    const MeshMessage *m = meshtastic_get_message(idx);
+    const MeshMessage *m = meshcore_get_message(idx);
     if (!m) return;
     confirm_idx = idx;
     // Quote the first ~60 chars of the body in the prompt so the user
@@ -266,7 +271,7 @@ static void hide_confirm()
     confirm_idx = -1;
 }
 
-void meshtastic_screen_create()
+void meshcore_screen_create()
 {
     mesh_screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(mesh_screen, lv_color_black(), LV_PART_MAIN);
@@ -278,8 +283,10 @@ void meshtastic_screen_create()
     s_mesh_title = title;
     lv_obj_set_style_text_color(title, argus_base_accent(), LV_PART_MAIN);
     lv_obj_set_style_text_font(title, theme_title_font(), LV_PART_MAIN);
-    lv_label_set_text(title, "MESHTASTIC");
+    lv_label_set_text(title, "MESHCORE");
     lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 21);
+    lv_obj_add_flag(title, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(title, [](lv_event_t*) { meshcore_phone_screen_show(); }, LV_EVENT_CLICKED, nullptr);
 
     // Message list — grown 5 px up + 10 px down vs prior 360x325@y=92,
     // so now 360x340 starting at y=87 and ending at y=427.
@@ -317,7 +324,7 @@ void meshtastic_screen_create()
     lv_obj_set_style_text_color(hint, ARGUS_TEXT_DIM, LV_PART_MAIN);
     lv_obj_set_style_text_font(hint, theme_text_font(14), LV_PART_MAIN);
     lv_obj_set_style_text_align(hint, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_label_set_text(hint, "Tap: reply   hold: delete   swipe: nav");
+    lv_label_set_text(hint, "Title: phone sync | tap: reply | hold: delete");
     // -22 (was -42) per request — drops the hint another 20 px
     // closer to the bottom edge.
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -22);
@@ -387,7 +394,7 @@ void meshtastic_screen_create()
     rebuild_list();
 }
 
-void meshtastic_screen_show()
+void meshcore_screen_show()
 {
     main_loop_request_lvgl_priority(12);
     if (s_mesh_title) lv_obj_set_style_text_color(s_mesh_title, argus_base_accent(), LV_PART_MAIN);
@@ -395,13 +402,13 @@ void meshtastic_screen_show()
     lv_scr_load(mesh_screen);
 }
 
-bool meshtastic_screen_is_active()
+bool meshcore_screen_is_active()
 {
     return lv_screen_active() == mesh_screen;
 }
 
-void meshtastic_screen_refresh()
+void meshcore_screen_refresh()
 {
-    if (meshtastic_screen_is_active())
+    if (meshcore_screen_is_active())
         rebuild_list();
 }

@@ -1,11 +1,11 @@
 #include "nodes_screen.h"
 #include "theme.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include "send_message_screen.h"
 #include <LilyGoLib.h>
 
-// Defined in meshtastic_screen.cpp
-void meshtastic_screen_show();
+// Defined in meshcore_screen.cpp
+void meshcore_screen_show();
 // Defined in main.cpp
 void main_loop_request_lvgl_priority(int cycles);
 
@@ -24,9 +24,9 @@ static uint32_t    trace_deadline = 0;     // millis() value for timeout
 
 static const char *short_name_for(uint32_t node_id)
 {
-    int n = meshtastic_get_node_count();
+    int n = meshcore_get_node_count();
     for (int i = 0; i < n; i++) {
-        const MeshNode *m = meshtastic_get_node(i);
+        const MeshNode *m = meshcore_get_node(i);
         if (m && m->node_id == node_id && m->short_name[0]) return m->short_name;
     }
     return "????";
@@ -42,7 +42,7 @@ static void render_trace_panel()
                   short_name_for(trace_target),
                   (unsigned long)trace_target);
 
-    const MeshTraceroute *tr = meshtastic_get_last_traceroute();
+    const MeshTraceroute *tr = meshcore_get_last_traceroute();
     if (tr && tr->target_node == trace_target && tr->has_response) {
         if (tr->hop_count == 0) {
             p += snprintf(buf + p, sizeof(buf) - p, "Direct neighbour");
@@ -110,11 +110,11 @@ static void on_action_trace(lv_event_t *)
     action_panel_hide();
     if (nid == 0 || nid == 0xFFFFFFFFu) return;
 
-    if (!meshtastic_send_traceroute(nid)) {
+    if (!meshcore_send_traceroute(nid)) {
         if (trace_panel && trace_label) {
             char buf[64];
             snprintf(buf, sizeof(buf),
-                     "Trace failed\n!%08lx\n(LoRa off?)\n\n(tap to dismiss)",
+                     "Use MeshCore phone app\nfor trace to %08lx\n\n(tap to dismiss)",
                      (unsigned long)nid);
             lv_label_set_text(trace_label, buf);
             lv_obj_clear_flag(trace_panel, LV_OBJ_FLAG_HIDDEN);
@@ -135,7 +135,7 @@ static void on_action_pos(lv_event_t *)
     action_panel_hide();
     if (nid == 0 || nid == 0xFFFFFFFFu) return;
 
-    bool ok = meshtastic_request_position(nid);
+    bool ok = meshcore_request_position(nid);
     // Reuse the trace result panel as a brief toast. There's no reply
     // tracking slot for position requests today - the reply just lands
     // in the normal POSITION RX path and updates the node row's
@@ -148,7 +148,7 @@ static void on_action_pos(lv_event_t *)
                      (unsigned long)nid);
         } else {
             snprintf(buf, sizeof(buf),
-                     "Position request failed\n(LoRa off?)\n\n(tap to dismiss)");
+                     "Position from adverts.\nUse phone telemetry for requests.\n\n(tap to dismiss)");
         }
         lv_label_set_text(trace_label, buf);
         lv_obj_clear_flag(trace_panel, LV_OBJ_FLAG_HIDDEN);
@@ -193,7 +193,7 @@ static void on_gesture(lv_event_t *e)
     lv_indev_t *indev = lv_event_get_indev(e);
     lv_dir_t dir = lv_indev_get_gesture_dir(indev);
     if (dir == LV_DIR_LEFT)
-        meshtastic_screen_show();
+        meshcore_screen_show();
     else if (dir == LV_DIR_RIGHT)
         send_message_screen_show();
 }
@@ -258,7 +258,7 @@ static void make_node_entry(lv_obj_t *parent, const MeshNode *n)
                        p ? "\n" : "", (unsigned long)n->hw_model);
     if (n->has_role)
         p += snprintf(detail + p, sizeof(detail) - p, "%sRole: %s",
-                       p ? "\n" : "", meshtastic_role_name(n->role));
+                       p ? "\n" : "", meshcore_role_name(n->role));
     if (n->has_is_licensed)
         p += snprintf(detail + p, sizeof(detail) - p, "%sLicensed: %s",
                        p ? "\n" : "", n->is_licensed ? "Yes" : "No");
@@ -357,7 +357,7 @@ static void make_node_entry(lv_obj_t *parent, const MeshNode *n)
 static void rebuild_list()
 {
     lv_obj_clean(nodes_box);
-    int node_count = meshtastic_get_node_count();
+    int node_count = meshcore_get_node_count();
     if (node_count == 0) {
         lv_obj_t *lbl = lv_label_create(nodes_box);
         lv_obj_add_flag(lbl, LV_OBJ_FLAG_FLOATING);  // exclude from flex layout so center works
@@ -368,7 +368,7 @@ static void rebuild_list()
         lv_obj_set_style_text_align(lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     } else {
         for (int i = 0; i < node_count; i++) {
-            const MeshNode *n = meshtastic_get_node(i);
+            const MeshNode *n = meshcore_get_node(i);
             if (n) make_node_entry(nodes_box, n);
         }
     }
@@ -380,7 +380,7 @@ void nodes_screen_create()
     lv_obj_set_style_bg_color(nodes_screen, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_border_width(nodes_screen, 0, LV_PART_MAIN);
 
-    // Title + list + hint geometry mirrors the Meshtastic screen so
+    // Title + list + hint geometry mirrors the MeshCore screen so
     // the two feel visually identical when swiping between them.
     lv_obj_t *title = lv_label_create(nodes_screen);
     s_nodes_title = title;

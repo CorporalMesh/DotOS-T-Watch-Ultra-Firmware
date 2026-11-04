@@ -1,7 +1,7 @@
 #include "channels_screen.h"
 #include "theme.h"
 #include "configuration_screen.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include <LilyGoLib.h>
 #include <stdio.h>
 
@@ -19,13 +19,13 @@ static void on_back_gesture(lv_event_t *e)
 }
 
 // Tap a row -> mark it active. user_data holds the slot index. Slot
-// must be enabled + non-empty to become active; the meshtastic
+// must be enabled + non-empty to become active; the meshcore
 // backend enforces that and silently ignores the call otherwise.
 static void on_row_clicked(lv_event_t *e)
 {
     auto target = (lv_obj_t *)lv_event_get_target(e);
     int idx = (int)(intptr_t)lv_obj_get_user_data(target);
-    meshtastic_set_active_channel(idx);
+    meshcore_set_active_channel(idx);
     rebuild_list();
 }
 
@@ -40,15 +40,15 @@ static void on_switch_changed(lv_event_t *e)
     auto sw  = (lv_obj_t *)lv_event_get_target(e);
     int idx  = (int)(intptr_t)lv_obj_get_user_data(sw);
     bool on  = lv_obj_has_state(sw, LV_STATE_CHECKED);
-    meshtastic_set_channel_enabled(idx, on);
+    meshcore_set_channel_enabled(idx, on);
     rebuild_list();
 }
 
 static void make_channel_row(lv_obj_t *parent, int idx)
 {
-    const MeshChannel *ch = meshtastic_get_channel(idx);
+    const MeshChannel *ch = meshcore_get_channel(idx);
     if (!ch) return;
-    bool is_active = (idx == meshtastic_get_active_channel());
+    bool is_active = (idx == meshcore_get_active_channel());
 
     lv_obj_t *card = lv_obj_create(parent);
     lv_obj_set_size(card, lv_pct(100), 100);
@@ -83,10 +83,10 @@ static void make_channel_row(lv_obj_t *parent, int idx)
     // Sub-line: PSK preview / status text.
     char sub[64];
     if (idx == 0) {
-        snprintf(sub, sizeof(sub), "Public LongFast  (hash 0x%02X)",
+        snprintf(sub, sizeof(sub), "MeshCore Public  (hash 0x%02X)",
                  ch->channel_hash);
     } else if (ch->psk_len == 0) {
-        snprintf(sub, sizeof(sub), "Toggle on to generate a PSK");
+        snprintf(sub, sizeof(sub), "Configure in MeshCore app");
     } else {
         char hex[16];
         int p = 0;
@@ -114,7 +114,7 @@ static void make_channel_row(lv_obj_t *parent, int idx)
         LV_PART_MAIN | LV_STATE_CHECKED);
     if (ch->enabled) lv_obj_add_state(sw, LV_STATE_CHECKED);
     lv_obj_set_user_data(sw, (void *)(intptr_t)idx);
-    lv_obj_add_event_cb(sw, on_switch_changed, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_state(sw, LV_STATE_DISABLED);
     lv_obj_align(sw, LV_ALIGN_RIGHT_MID, 0, 0);
 }
 
@@ -154,13 +154,13 @@ void channels_screen_create()
     // PSK-edit hint - the UI doesn't expose PSK editing on purpose
     // (no on-screen 32-byte hex entry), so this line tells the user
     // where to go when they actually need to paste a friend's PSK.
-    // /Meshtastic/channels.txt is the same file that gets written on
+    // /MeshCore/channels.txt is the same file that gets written on
     // every channel-state change here, and is re-read at boot.
     lv_obj_t *psk_hint = lv_label_create(ch_screen);
     lv_obj_set_style_text_color(psk_hint, lv_color_make(0x55, 0x99, 0xCC), LV_PART_MAIN);
     lv_obj_set_style_text_font(psk_hint, theme_text_font(14), LV_PART_MAIN);
     lv_obj_set_style_text_align(psk_hint, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_label_set_text(psk_hint, "Edit PSK in channels.txt on SD");
+    lv_label_set_text(psk_hint, "Manage keys in MeshCore phone app");
     lv_obj_align(psk_hint, LV_ALIGN_BOTTOM_MID, 0, -47);
 
     lv_obj_t *hint = lv_label_create(ch_screen);

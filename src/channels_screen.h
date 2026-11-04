@@ -1,8 +1,8 @@
 #pragma once
 #include <lvgl.h>
 
-// Settings -> Channels sub-screen for the meshtastic flow.
-// Lists the 4 channel slots (slot 0 = LongFast hardcoded, slots 1..3
+// Settings -> Channels sub-screen for the meshcore flow.
+// Lists the 4 channel slots (slot 0 = Public hardcoded, slots 1..3
 // user-defined). Each row shows the channel name + a PSK preview,
 // plus an enable switch and a "set active" marker. Tap a row to set
 // that channel as the active outgoing TX channel; toggle the switch

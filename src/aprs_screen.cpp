@@ -63,7 +63,7 @@ static void update_status()
         text  = buf;
         color = ARGUS_ACCENT;
     } else if (lora_screen_is_powered()) {
-        text  = "LoRa radio in use - stop Meshtastic";
+        text  = "LoRa radio in use - stop MeshCore";
         color = lv_color_make(0xFF, 0xAA, 0x00);
     } else if (aprs_last_error() != 0) {
         snprintf(buf, sizeof(buf), "Radio init failed (%d)", (int)aprs_last_error());

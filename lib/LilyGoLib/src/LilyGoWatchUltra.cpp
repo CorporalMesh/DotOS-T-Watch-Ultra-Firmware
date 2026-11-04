@@ -53,7 +53,11 @@ static const disp_cmd_t co5300_206_cmd[CO5300_206_INIT_SEQUENCE_LENGTH] = {
 #endif
 
 #if    defined(ARDUINO_LILYGO_LORA_SX1262)
+#ifdef DOTOS_MESHCORE
+CustomSX1262 radio = newModule();
+#else
 SX1262 radio = newModule();
+#endif
 #elif  defined(ARDUINO_LILYGO_LORA_SX1280)
 SX1280 radio = newModule();
 #elif  defined(ARDUINO_LILYGO_LORA_CC1101)

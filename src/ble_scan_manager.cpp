@@ -1,3 +1,4 @@
+#include "meshcore.h"
 #include "ble_scan_manager.h"
 #include "esp_bt.h"
 #include "esp_bt_main.h"
@@ -110,6 +111,7 @@ static void tear_down_controller()
 
 bool ble_scan_add(ble_scan_cb_t cb)
 {
+    if (meshcore_ble_owned()) { s_last_error = BLE_SCAN_ERR_CONTROLLER; return false; }
     if (!cb) { s_last_error = BLE_SCAN_ERR_CONTROLLER; return false; }
 
     // Idempotent: already-registered cbs aren't added twice.
@@ -198,6 +200,7 @@ static void keepalive_cb(esp_ble_gap_cb_param_t *) { /* passive-scan keep-alive 
 
 void ble_scan_boot_keepalive()
 {
+    if (meshcore_ble_owned()) return;
     // NOTE: NOT currently invoked — calling this from setup() crashed boot (BLE
     // brought up too early). Kept as the intended proper fix for the WiFi/BT
     // coexistence freeze, to be wired at a safe, verified init point later. The

@@ -1,5 +1,5 @@
 #include "tracker_rep.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include <Arduino.h>     // millis()
 #include <string.h>
 #include <stdio.h>
@@ -77,11 +77,11 @@ void tracker_rep_flag_local(const uint8_t *mac6, uint8_t category)
     bool is_new = rep_add(h, category, 0, false);
 
     // Only announce a freshly confirmed tail, and only if the mesh is up.
-    if (is_new && meshtastic_is_active()) {
+    if (is_new && meshcore_is_active()) {
         char buf[24];
         snprintf(buf, sizeof(buf), "TRFLAG|%08lX|%c",
                  (unsigned long)h, cat_to_char(category));
-        meshtastic_send_text(buf);
+        meshcore_send_text(buf);
     }
 }
 

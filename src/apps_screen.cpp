@@ -59,7 +59,7 @@ void tesla_cp_screen_show();
 void tpms_screen_show();
 void pager_screen_show();
 void aprs_screen_show();
-void meshtastic_screen_show();
+void meshcore_screen_show();
 void usb_sd_screen_show();
 void face_watch_screen_show();
 void alarm_screen_show();
@@ -136,7 +136,7 @@ const Entry ENTRIES[] = {
     L("HexHound",         CAT_APPS, pet_screen_show),
     L("Health",           CAT_APPS, health_screen_show),
     L("Flashlight",       CAT_APPS, flashlight_screen_show),
-    L("Meshtastic",       CAT_APPS, meshtastic_screen_show),
+    L("MeshCore",       CAT_APPS, meshcore_screen_show),
     L("Pager 13:37",      CAT_APPS, pager_screen_show),
     L("LoRa APRS",        CAT_APPS, aprs_screen_show),
     L("TPMS",             CAT_APPS, tpms_screen_show),

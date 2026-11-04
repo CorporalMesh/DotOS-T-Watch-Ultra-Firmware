@@ -12,7 +12,7 @@ name: CI
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, "codex/**"]
   pull_request:
   workflow_dispatch:
 

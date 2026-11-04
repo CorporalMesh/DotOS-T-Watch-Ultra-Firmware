@@ -1,3 +1,4 @@
+#include "meshcore.h"
 // ans.cpp - see ans.h. Alert Notification Service GATT server for Gadgetbridge.
 #include "ans.h"
 #include "notify/ans_packet.h"
@@ -227,6 +228,7 @@ ServerCb s_server_cb;
 
 bool start()
 {
+    if (meshcore_ble_owned()) return false;
     if (s_running) return true;
     if (wifi_active()) return false;
 

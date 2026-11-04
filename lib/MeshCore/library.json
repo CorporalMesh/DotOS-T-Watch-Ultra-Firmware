@@ -1,0 +1,16 @@
+{
+  "name": "MeshCore",
+  "version": "1.18.0",
+  "build": {
+    "srcFilter": [
+      "+<*.cpp>",
+      "+<helpers/*.cpp>",
+      "-<helpers/AutoDiscoverRTCClock.cpp>",
+      "-<helpers/ESP32Board.cpp>",
+      "-<helpers/NRF52Board.cpp>",
+      "-<helpers/RTC_RX8130CE.cpp>",
+      "+<helpers/radiolib/*.cpp>",
+      "+<helpers/esp32/SerialBLEInterface.cpp>"
+    ]
+  }
+}

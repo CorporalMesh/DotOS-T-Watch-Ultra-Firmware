@@ -18,6 +18,9 @@
 #include <SensorBHI260AP.hpp>
 #include <TouchDrvCSTXXX.hpp>
 #include <RadioLib.h>
+#ifdef DOTOS_MESHCORE
+#include <helpers/radiolib/CustomSX1262.h>
+#endif
 #include <SD.h>
 #include "GPS.h"
 #include "PDM.h"
@@ -641,7 +644,11 @@ extern RfalNfcClass NFCReader;
 extern LilyGoUltra &instance;
 
 #if    defined(ARDUINO_LILYGO_LORA_SX1262)
+#ifdef DOTOS_MESHCORE
+extern CustomSX1262 radio;
+#else
 extern SX1262 radio;
+#endif
 #define USING_RADIO_NAME        "SX1262"
 #elif  defined(ARDUINO_LILYGO_LORA_SX1280)
 extern SX1280 radio;

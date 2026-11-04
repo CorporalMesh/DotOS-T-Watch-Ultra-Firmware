@@ -1,7 +1,7 @@
 #include "lora_screen.h"
 #include "tools_screen.h"
 #include "theme.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include "pager.h"
 #include "tpms.h"
 #include "aprs.h"
@@ -81,7 +81,7 @@ static void on_lora_update(lv_timer_t *timer)
 {
     // Skip the whole tick when the screen isn't visible — none of the
     // label updates below are observable, and the work to build them
-    // (snprintf, meshtastic_get_*) is otherwise burned every second
+    // (snprintf, meshcore_get_*) is otherwise burned every second
     // even on the clock face. The lvgl timer still fires; it just no-ops.
     if (!lora_screen_is_active()) return;
 
@@ -99,21 +99,24 @@ static void on_lora_update(lv_timer_t *timer)
     char buf[32];
 
     // Node ID (derived from MAC, fixed for this device)
-    snprintf(buf, sizeof(buf), "!%08lx", (unsigned long)meshtastic_get_node_id());
+    snprintf(buf, sizeof(buf), "!%08lx", (unsigned long)meshcore_get_node_id());
     lv_label_set_text(val_node_id, buf);
 
-    // Static Meshtastic LongFast config
-    lv_label_set_text(val_frequency, "906.9 MHz");
-    lv_label_set_text(val_bandwidth, "250 kHz");
-    lv_label_set_text(val_tx_power,  "10 dBm");
+    // Static MeshCore Public config
+    snprintf(buf,sizeof(buf),"%.3f MHz",meshcore_frequency());
+    lv_label_set_text(val_frequency, buf);
+    snprintf(buf,sizeof(buf),"%.1f kHz",meshcore_bandwidth());
+    lv_label_set_text(val_bandwidth, buf);
+    snprintf(buf,sizeof(buf),"%d dBm",meshcore_tx_power());
+    lv_label_set_text(val_tx_power, buf);
 
-    // Live values from meshtastic module
-    snprintf(buf, sizeof(buf), "%.0f dBm", meshtastic_get_rssi());
+    // Live values from meshcore module
+    snprintf(buf, sizeof(buf), "%.0f dBm", meshcore_get_rssi());
     lv_label_set_text(val_rssi, buf);
 
-    lv_label_set_text(val_cad, meshtastic_get_cad() ? "Active" : "Clear");
+    lv_label_set_text(val_cad, meshcore_get_cad() ? "Active" : "Clear");
 
-    snprintf(buf, sizeof(buf), "%d", meshtastic_get_rx_count());
+    snprintf(buf, sizeof(buf), "%d", meshcore_get_rx_count());
     lv_label_set_text(val_packet_count, buf);
 }
 
@@ -123,7 +126,7 @@ static void on_toggle(lv_event_t *e)
     if (lora_powered) {
         // The SX1262 is shared. Stop any FSK scanner before LoRa claims the
         // radio, otherwise its background tick keeps polling and steals
-        // IRQs/packets from meshtastic.
+        // IRQs/packets from meshcore.
         pager_stop();
         tpms_stop();
         aprs_stop();
@@ -135,7 +138,8 @@ static void on_toggle(lv_event_t *e)
         // and persist=true keeps it across the radio's internal RX↔standby cycles.
         radio.setRxBoostedGainMode(s_boosted_gain_enabled, true);
     }
-    meshtastic_set_active(lora_powered);
+    meshcore_set_active(lora_powered);
+    lora_powered = meshcore_is_active();
     clock_screen_set_lora_active(lora_powered);
     update_status();
     lora_save_power(lora_powered); // survive reboot
@@ -262,7 +266,7 @@ void lora_screen_restore_power()
     instance.initLoRa();
     radio.setRxBoostedGainMode(s_boosted_gain_enabled, true);
     lora_powered = true;
-    meshtastic_set_active(true);
+    meshcore_set_active(true);
     clock_screen_set_lora_active(true);
     update_status();
 

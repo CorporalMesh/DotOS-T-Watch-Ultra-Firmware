@@ -1,9 +1,9 @@
 #pragma once
 #include <lvgl.h>
 
-// Slippy-tile map screen for the Meshtastic flow (between NODES and SEND
+// Slippy-tile map screen for the MeshCore flow (between NODES and SEND
 // MESSAGE). When 256x256 PNG tiles exist on the SD card under /map/<z>/<x>/<y>
-// — the Meshtastic UI layout — they are rendered centred on the current GPS
+// — the MeshCore UI layout — they are rendered centred on the current GPS
 // location.
 
 void map_screen_create();

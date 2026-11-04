@@ -22,7 +22,7 @@
 // internal block from 20,468 to 65,524 bytes with Bluedroid active. This predates
 // notifications and occurs with no phone or ANCS connection, so ANCS was not the
 // cause. See tasks/COEXIST-NOTES.md.
-#define ARGUS_RADIO_COEXIST 1
+#define ARGUS_RADIO_COEXIST 0
 
 // Measurement-only diagnostics: log boot-time internal-heap checkpoints and
 // reset reasons to serial and /Settings/coexlog.txt, plus the pre-WiFi heap

@@ -97,7 +97,7 @@ lv_color_t argus_accent(void);
 // accent, card border and notification banner uses it, so colour tracks the
 // MODE and red appears only on the Offense side. Using argus_accent() for
 // chrome was the 2026-07-30 bug: a live WiFi/tracker threat turned every
-// Defense-mode heading (TOOLS, TIME, WARDRIVER, MESHTASTIC, NODES, SEND
+// Defense-mode heading (TOOLS, TIME, WARDRIVER, MESHCORE, NODES, SEND
 // MESSAGE, CONFIGURATION, SETTINGS, ...) HADES-red, which reads as "you are in
 // Offense" rather than as an alert. Defined in theme.cpp.
 lv_color_t argus_base_accent(void);

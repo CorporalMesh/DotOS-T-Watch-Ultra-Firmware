@@ -1,3 +1,4 @@
+#include "meshcore.h"
 // ancs.cpp - see ancs.h. iOS ANCS Notification Consumer on raw Bluedroid.
 //
 // Flow (mirrors Apple's ANCS spec and the ESP-IDF ble_ancs example):
@@ -536,6 +537,7 @@ bool bring_up_controller()
 
 bool start()
 {
+    if (meshcore_ble_owned()) return false;
     if (s_running) return true;
     if (!bring_up_controller()) return false;
 

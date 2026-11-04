@@ -45,7 +45,7 @@ void clock_screen_show(void)         {}
 void alarm_screen_show(void)         {}
 void sun_moon_screen_show(void)      {}
 void flashlight_screen_show(void)    {}
-void meshtastic_screen_show(void)    {}
+void meshcore_screen_show(void)    {}
 void settings_screen_show(void)      {}
 void notifications_screen_show(void) {}
 

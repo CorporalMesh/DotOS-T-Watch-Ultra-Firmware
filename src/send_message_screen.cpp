@@ -1,6 +1,6 @@
 #include "send_message_screen.h"
 #include "theme.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include "configuration_screen.h"
 #include "nodes_screen.h"
 #include "map_screen.h"
@@ -18,8 +18,8 @@ void main_loop_request_lvgl_priority(int cycles);
 // Cap at 8 so the scrollable list stays scannable on the 410-disc.
 #define MAX_CUSTOM      8
 #define CUSTOM_MAX_LEN  120
-static const char *PRESET_MSG = "Hello Meshtastic!";
-static const char *CUSTOM_FILE = "/Meshtastic/custom_messages.txt";
+static const char *PRESET_MSG = "Hello MeshCore!";
+static const char *CUSTOM_FILE = "/MeshCore/custom_messages.txt";
 
 static lv_obj_t *send_screen;
 static lv_obj_t *title_label;
@@ -52,7 +52,7 @@ static int   s_custom_count = 0;
 // time the user leaves the send screen via swipe-nav.
 static uint32_t   s_dest_node = 0xFFFFFFFFu;
 
-// Most-recent DM we sent. Once meshtastic_send_text_to() returns true we
+// Most-recent DM we sent. Once meshcore_send_text_to() returns true we
 // look up the latest outgoing tracker entry, latch its packet_id here,
 // and an lv_timer polls the tracker every second to update the status
 // label as PENDING -> DELIVERED / NO_ACK / NAKED.
@@ -69,7 +69,7 @@ static void hide_confirm();
 
 // ---- persistence ----------------------------------------------------------
 
-// Read /Meshtastic/custom_messages.txt one line at a time into the
+// Read /MeshCore/custom_messages.txt one line at a time into the
 // s_customs ring. Tolerates CRLF / CR / LF and silently truncates
 // over-long lines to CUSTOM_MAX_LEN-1. Capped at MAX_CUSTOM entries;
 // extras on disk are dropped.
@@ -99,7 +99,7 @@ static void load_customs()
 static void save_customs()
 {
     if (!instance.isCardReady()) return;
-    if (!SD.exists("/Meshtastic")) SD.mkdir("/Meshtastic");
+    if (!SD.exists("/MeshCore")) SD.mkdir("/MeshCore");
     File f = SD.open(CUSTOM_FILE, FILE_WRITE);
     if (!f) return;
     for (int i = 0; i < s_custom_count; i++) {
@@ -147,9 +147,9 @@ static void delete_custom(int idx)
 
 static const char *short_name_for(uint32_t dest)
 {
-    int n = meshtastic_get_node_count();
+    int n = meshcore_get_node_count();
     for (int i = 0; i < n; i++) {
-        const MeshNode *m = meshtastic_get_node(i);
+        const MeshNode *m = meshcore_get_node(i);
         if (m && m->node_id == dest && m->short_name[0]) return m->short_name;
     }
     return "????";
@@ -182,8 +182,8 @@ static void show_send_status(const char *text, bool ok)
 
 static void send_text(const char *text)
 {
-    if (!meshtastic_send_text_to(text, s_dest_node)) {
-        show_send_status("Enable LoRa first", false);
+    if (!meshcore_send_text_to(text, s_dest_node)) {
+        show_send_status("Check radio/contact; max 130 bytes", false);
         return;
     }
     if (s_dest_node != 0xFFFFFFFFu) {
@@ -202,7 +202,7 @@ static void send_text(const char *text)
     // next poll; the poll handles a not-yet-stamped slot gracefully.
     s_watched_pkt_id    = 0;
     s_last_render_state = -1;
-    const MeshOutgoing *o = meshtastic_get_outgoing(0);
+    const MeshOutgoing *o = meshcore_get_outgoing(0);
     if (o && strncmp(o->text, text, sizeof(o->text)) == 0) {
         s_watched_pkt_id = o->packet_id;
     }
@@ -216,13 +216,13 @@ static void on_ack_poll(lv_timer_t *)
     if (s_watched_pkt_id == 0) {
         // First scan after a DM send - bg_tick may have just stamped
         // the pkt_id onto the tracker. Look for our just-queued entry.
-        const MeshOutgoing *o = meshtastic_get_outgoing(0);
+        const MeshOutgoing *o = meshcore_get_outgoing(0);
         if (!o || o->state != MeshOutgoing::PENDING) return;
         s_watched_pkt_id = o->packet_id;
     }
-    int n = meshtastic_get_outgoing_count();
+    int n = meshcore_get_outgoing_count();
     for (int i = 0; i < n; i++) {
-        const MeshOutgoing *o = meshtastic_get_outgoing(i);
+        const MeshOutgoing *o = meshcore_get_outgoing(i);
         if (!o || o->packet_id != s_watched_pkt_id) continue;
         if ((int)o->state == s_last_render_state) return;
         s_last_render_state = (int)o->state;
@@ -240,7 +240,7 @@ static void on_ack_poll(lv_timer_t *)
             case MeshOutgoing::NAKED: {
                 char buf[40];
                 snprintf(buf, sizeof(buf), "NAK: %s",
-                         meshtastic_routing_error_name(o->error_reason));
+                         meshcore_routing_error_name(o->error_reason));
                 show_send_status(buf, false);
                 break;
             }
@@ -427,7 +427,7 @@ void send_message_screen_create()
     lv_obj_set_style_border_width(send_screen, 0, LV_PART_MAIN);
 
     // Title - re-titled to "DM -> [SHRT]" for pre-targeted DMs.
-    // Title + list + hint geometry mirrors the Meshtastic + Nodes
+    // Title + list + hint geometry mirrors the MeshCore + Nodes
     // screens so all three feel visually identical when swiping.
     title_label = lv_label_create(send_screen);
     lv_obj_set_style_text_color(title_label, argus_base_accent(), LV_PART_MAIN);
@@ -437,7 +437,7 @@ void send_message_screen_create()
 
     // Scrollable list of message cards. Preset is always at the top,
     // typed customs in the middle, "+ Compose..." card at the bottom.
-    // Same 360x340 box at y=87 the Meshtastic / Nodes screens use.
+    // Same 360x340 box at y=87 the MeshCore / Nodes screens use.
     list_box = lv_obj_create(send_screen);
     lv_obj_set_size(list_box, 360, 340);
     lv_obj_align(list_box, LV_ALIGN_TOP_MID, 0, 87);

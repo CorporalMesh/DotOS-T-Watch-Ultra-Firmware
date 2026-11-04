@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 // ---------------------------------------------------------------------------
-// Distributed tracker reputation over the Meshtastic mesh.
+// Distributed tracker reputation over the MeshCore mesh.
 //
 // Threat Radar already decides, per watch, whether a device is following its
 // wearer. This shares that verdict across the group: when a tail is CONFIRMED,

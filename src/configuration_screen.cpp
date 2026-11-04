@@ -1,7 +1,7 @@
 #include "configuration_screen.h"
 #include "theme.h"
 #include "channels_screen.h"
-#include "meshtastic.h"
+#include "meshcore.h"
 #include "gps_screen.h"
 #include "map_screen.h"
 #include <LilyGoLib.h>
@@ -60,7 +60,7 @@ static const uint32_t BROADCAST_INTERVAL_MS[] = {
 };
 
 // NodeInfo announce intervals. Matches the P4's set: 1m / 5m / 10m / 15m.
-// Default is index 2 (10 minutes) - same as meshtastic.cpp's static
+// Default is index 2 (10 minutes) - same as meshcore.cpp's static
 // s_announce_interval initialiser.
 static const uint32_t ANNOUNCE_INTERVAL_MS[] = {
     60000,     // 1 Minute
@@ -82,22 +82,22 @@ static void commit_announce();
 
 void configuration_screen_commit()
 {
-    meshtastic_set_long_name(lv_textarea_get_text(long_ta));
-    meshtastic_set_short_name(lv_textarea_get_text(short_ta));
+    meshcore_set_long_name(lv_textarea_get_text(long_ta));
+    meshcore_set_short_name(lv_textarea_get_text(short_ta));
 }
 
-// Persist every Meshtastic-config screen value (plus the long/short
-// name from the meshtastic backend) to /Meshtastic/config.txt as
+// Persist every MeshCore-config screen value (plus the long/short
+// name from the meshcore backend) to /MeshCore/config.txt as
 // human-readable key=value pairs. Called from every "value changed"
 // handler on this screen so a reboot loses nothing.
 static void save_config_to_sd()
 {
     if (s_loading || !instance.isCardReady()) return;
-    if (!SD.exists("/Meshtastic")) SD.mkdir("/Meshtastic");
-    File f = SD.open("/Meshtastic/config.txt", FILE_WRITE);
+    if (!SD.exists("/MeshCore")) SD.mkdir("/MeshCore");
+    File f = SD.open("/MeshCore/config.txt", FILE_WRITE);
     if (!f) return;
-    f.printf("long_name=%s\n",  meshtastic_get_long_name());
-    f.printf("short_name=%s\n", meshtastic_get_short_name());
+    f.printf("long_name=%s\n",  meshcore_get_long_name());
+    f.printf("short_name=%s\n", meshcore_get_short_name());
     f.printf("broadcast=%d\n",  s_broadcast_enabled ? 1 : 0);
     f.printf("interval_idx=%u\n",
         (unsigned)lv_dropdown_get_selected(interval_dropdown));
@@ -116,10 +116,10 @@ static void save_config_to_sd()
 static void apply_config_kv(const char *key, const char *val)
 {
     if (strcmp(key, "long_name") == 0) {
-        meshtastic_set_long_name(val);
+        // Companion DataStore is authoritative for identity, including phone edits.
         if (long_ta) lv_textarea_set_text(long_ta, val);
     } else if (strcmp(key, "short_name") == 0) {
-        meshtastic_set_short_name(val);
+        meshcore_set_short_name(val);
         if (short_ta) lv_textarea_set_text(short_ta, val);
     } else if (strcmp(key, "broadcast") == 0) {
         s_broadcast_enabled = (strtol(val, nullptr, 10) != 0);
@@ -157,7 +157,7 @@ static void apply_config_kv(const char *key, const char *val)
             if (s_announce_enabled) lv_obj_add_state   (announce_switch, LV_STATE_CHECKED);
             else                    lv_obj_clear_state (announce_switch, LV_STATE_CHECKED);
         }
-        // Mirror the new state into meshtastic:: on the next pass; the
+        // Mirror the new state into meshcore:: on the next pass; the
         // interval may still be the old default until apply_config_kv
         // sees announce_interval_idx, but commit_announce uses whatever
         // is currently selected in the dropdown.
@@ -175,8 +175,8 @@ static void apply_config_kv(const char *key, const char *val)
 static void load_config_from_sd()
 {
     if (!instance.isCardReady()) return;
-    if (!SD.exists("/Meshtastic/config.txt")) return;
-    File f = SD.open("/Meshtastic/config.txt", FILE_READ);
+    if (!SD.exists("/MeshCore/config.txt")) return;
+    File f = SD.open("/MeshCore/config.txt", FILE_READ);
     if (!f) return;
     s_loading = true;
     char line[96];
@@ -258,6 +258,7 @@ static void on_kb_event(lv_event_t *e)
 static void on_broadcast_changed(lv_event_t *e)
 {
     s_broadcast_enabled = lv_obj_has_state(broadcast_switch, LV_STATE_CHECKED);
+    if (!s_broadcast_enabled) meshcore_clear_advert_location();
     save_config_to_sd();
 }
 
@@ -284,7 +285,7 @@ static void on_vibrate_broadcast_changed(lv_event_t *)
     save_config_to_sd();
 }
 
-// Push the announce switch + interval dropdown state into meshtastic::.
+// Push the announce switch + interval dropdown state into meshcore::.
 // Disables the dropdown while the toggle is off so it's visually obvious
 // the interval is moot.
 static void commit_announce()
@@ -294,7 +295,7 @@ static void commit_announce()
     if (idx >= sizeof(ANNOUNCE_INTERVAL_MS) / sizeof(ANNOUNCE_INTERVAL_MS[0])) {
         idx = ANNOUNCE_DEFAULT_IDX;
     }
-    meshtastic_set_announce(on, ANNOUNCE_INTERVAL_MS[idx]);
+    meshcore_set_announce(on, ANNOUNCE_INTERVAL_MS[idx]);
     if (on)  lv_obj_clear_state (announce_int_dropdown, LV_STATE_DISABLED);
     else     lv_obj_add_state   (announce_int_dropdown, LV_STATE_DISABLED);
 }
@@ -364,8 +365,8 @@ void configuration_screen_create()
     lv_label_set_text(title, "CONFIGURATION");
     lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 20);
 
-    long_ta  = make_field("Long Name",  60,  MESH_MAX_LONG_NAME  - 1);
-    short_ta = make_field("Short Name", 150, MESH_MAX_SHORT_NAME - 1);
+    long_ta  = make_field("MeshCore Name",  60,  MESH_MAX_LONG_NAME  - 1);
+    short_ta = make_field("Local short label", 150, MESH_MAX_SHORT_NAME - 1);
 
     // On-screen keyboard — hidden until a field is focused
     keyboard = lv_keyboard_create(cfg_screen);
@@ -472,7 +473,7 @@ void configuration_screen_create()
     lv_obj_t *rb_lbl = lv_label_create(rebroadcast_row);
     lv_obj_set_style_text_color(rb_lbl, ARGUS_TEXT, LV_PART_MAIN);
     lv_obj_set_style_text_font(rb_lbl, theme_text_font(20), LV_PART_MAIN);
-    lv_label_set_text(rb_lbl, "Rebroadcast Packets");
+    lv_label_set_text(rb_lbl, "Repeating: phone app");
     lv_obj_align(rb_lbl, LV_ALIGN_LEFT_MID, 0, 0);
 
     rebroadcast_switch = lv_switch_create(rebroadcast_row);
@@ -480,7 +481,7 @@ void configuration_screen_create()
     lv_obj_set_style_bg_color(rebroadcast_switch, lv_color_make(0x44, 0x44, 0x44), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(rebroadcast_switch, ARGUS_ACCENT, LV_PART_MAIN | LV_STATE_CHECKED);
     // default off
-    lv_obj_add_event_cb(rebroadcast_switch, on_rebroadcast_changed, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_state(rebroadcast_switch, LV_STATE_DISABLED);
     lv_obj_align(rebroadcast_switch, LV_ALIGN_RIGHT_MID, 0, 0);
 
     // Vibrate on incoming DM - sits below the rebroadcast row. The
@@ -533,7 +534,7 @@ void configuration_screen_create()
 
     // Announce Node to the Mesh toggle. When enabled, bg_tick blasts
     // a NodeInfo (and Telemetry) packet at the cadence selected below
-    // so other Meshtastic nodes can populate their node list with our
+    // so other MeshCore nodes can populate their node list with our
     // friendly name instead of falling back to "!hexnodeid".
     announce_row = lv_obj_create(cfg_screen);
     lv_obj_set_size(announce_row, 380, 55);
@@ -649,9 +650,9 @@ void configuration_screen_show()
 {
     main_loop_request_lvgl_priority(12);
     if (s_cfg_title) lv_obj_set_style_text_color(s_cfg_title, argus_base_accent(), LV_PART_MAIN);
-    // Sync fields with current meshtastic values
-    lv_textarea_set_text(long_ta,  meshtastic_get_long_name());
-    lv_textarea_set_text(short_ta, meshtastic_get_short_name());
+    // Sync fields with current meshcore values
+    lv_textarea_set_text(long_ta,  meshcore_get_long_name());
+    lv_textarea_set_text(short_ta, meshcore_get_short_name());
     hide_keyboard();
     configuration_screen_update();   // reflect current GPS state on entry
     lv_scr_load(cfg_screen);

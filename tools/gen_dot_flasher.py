@@ -40,7 +40,7 @@ li{margin:12px 0}table{width:100%;font-size:14px}td{text-align:left;padding:6px;
 </style><main>
 <h1>DotOS MeshCore installer</h1>
 <p>MeshCore 1.18 experimental alpha · LILYGO T-Watch Ultra (SX1262)</p>
-<p class="note">Source: COMMIT. Firmware compiles and passes host checks; physical-watch pairing and radio testing remain unverified.</p>
+<p class="note">Source: COMMIT. Firmware compiles and passes host checks. Alpha 1 validation on a new T-Watch Ultra was reported on November 3, 2026.</p>
 <section><esp-web-install-button id="installer">
 <button slot="activate">Install on watch</button>
 <span slot="unsupported">Open this file in desktop Chrome or Edge. This browser does not support WebSerial.</span>
@@ -57,6 +57,7 @@ li{margin:12px 0}table{width:100%;font-size:14px}td{text-align:left;padding:6px;
 <section><h2>Included firmware</h2><table><tr><th>Offset</th><th>Image</th><th>Bytes</th></tr>ROWS</table>
 <p class="note">All firmware and installer code are embedded in this file. It works offline and writes four separate images, preserving flash mode/frequency/size headers. No merged image.</p></section>
 <p><a href="https://github.com/CorporalMesh/DotOS-T-Watch-Ultra-Firmware/blob/codex/meshcore-1.18/docs/MESHCORE.md">Instructions and companion limitations</a></p>
+<p>Contributor: <a href="https://columbiagorgemesh.org">Columbia Gorge Mesh</a>.</p>
 </main><script>
 const PARTS = PARTS_JSON;
 const files = PARTS.map(p => {

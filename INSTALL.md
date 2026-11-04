@@ -8,7 +8,7 @@ Restart the watch when finished.
 Use [the MeshCore build and pairing instructions](docs/MESHCORE.md). The upstream
 DotOS web flasher contains Meshtastic firmware and does not install this fork.
 Build with `pio run -e twatch_ultra` and upload with
-`pio run -e twatch_ultra -t upload`. The experimental image needs hardware testing.
+`pio run -e twatch_ultra -t upload`. This alpha build has been validated on a new LILYGO T-Watch Ultra.
 
 # Installing DotOS
 

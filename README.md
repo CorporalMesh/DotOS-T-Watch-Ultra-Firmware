@@ -13,8 +13,9 @@ Install in desktop Chrome/Edge with the [web flasher](https://corporalmesh.githu
 An [offline HTML installer](https://github.com/CorporalMesh/DotOS-T-Watch-Ultra-Firmware/releases/download/meshcore-v1.18.0-dotos-alpha.1/dotos-meshcore-flasher.html) is also attached to the release.
 
 See [MeshCore build, pairing, limitations and hardware checklist](docs/MESHCORE.md).
-This fork is experimental and requires physical-watch validation. Use source
-builds from this branch; upstream's flasher still contains Meshtastic firmware.
+Hardware validation reported on a **new LILYGO T-Watch Ultra** on November 3,
+2026. This is still an alpha release. Use source builds from this branch;
+upstream's flasher still contains Meshtastic firmware.
 
 ```sh
 pio run -e twatch_ultra
@@ -27,5 +28,6 @@ standard bounded RAM queue; it does not replicate unlimited phone chat history.
 Based on [Holrigue/DotOS](https://github.com/Holrigue/DotOS-T-Watch-Ultra-Firmware/tree/develop),
 [ARGUS](https://github.com/h4d35x0/argus), and [13:37](https://github.com/r3dfish/13-37).
 Mesh protocol by [MeshCore](https://github.com/meshcore-dev/MeshCore).
+Contributor: [Columbia Gorge Mesh](https://columbiagorgemesh.org).
 Original project details and credits: [upstream README](docs/UPSTREAM_README.md).
 MIT; see [LICENSE](LICENSE) and the vendored library licenses.

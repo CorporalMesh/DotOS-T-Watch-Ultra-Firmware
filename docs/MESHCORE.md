@@ -23,8 +23,8 @@ The output is `.pio/build/twatch_ultra/firmware.bin`. This is the application
 image, not a merged factory image. Keep the existing 16 MB DotOS partition
 layout. Use `pio run -e twatch_ultra -t upload` for a full source build/upload;
 do not use upstream's browser flasher to install this fork because it contains
-the upstream Meshtastic build. No firmware has been flashed or tested on a
-physical watch during development of this fork.
+the upstream Meshtastic build. Hardware validation on a new LILYGO T-Watch
+Ultra was reported by CorporalMesh on November 3, 2026.
 
 ## Watch operation
 
@@ -97,11 +97,17 @@ license. Old Meshtastic SD channel files are not imported into MeshCore.
 
 ## Validation
 
+CorporalMesh reported successful validation of alpha 1 on a **new LILYGO
+T-Watch Ultra** on November 3, 2026. This records the user's hardware validation;
+individual results for the regression checks below were not itemized.
+
+Contributor: [Columbia Gorge Mesh](https://columbiagorgemesh.org).
+
 Build the ESP32-S3 firmware with `pio run -e twatch_ultra`; run the pure host
 suite with `make -C test test`. New tests cover 130-byte limits including UTF-8,
 full-key selection and refusal of colliding display prefixes.
 
-Hardware acceptance still required:
+Regression checklist for future builds:
 
 - Boot and verify display/touch/clock/GPS and LoRa power cycling.
 - Pair Android and/or iOS, enter PIN, read self-info/contacts/channels.
@@ -112,5 +118,4 @@ Hardware acceptance still required:
 - Test disconnect/reconnect, screen-off reception and constrained-memory boot.
 - Check radio-mode handoff to/from APRS/FSK and Bluetooth ownership guards.
 
-A compiled image is not evidence of BLE or over-air interoperability on the
-physical watch. Keep a known-working upstream image for recovery.
+Keep a known-working firmware image for recovery when testing future builds.

@@ -67,7 +67,7 @@
     <ol class="steps">
       <li>Use desktop <strong>Chrome</strong> or <strong>Edge</strong>. Firefox and Safari cannot flash over WebSerial.</li>
       <li><strong>Hold BOOT while connecting</strong> the watch with a USB-C data cable. This puts it in download mode. The browser cannot reset the watch out of the running app on its own, so this step is required, not a fallback.</li>
-      <li>Click <strong>Install</strong> and pick the watch's serial port.</li>
+      <li>Click <strong>Connect</strong>, pick the watch's serial port, then choose <strong>Install DotOS MeshCore</strong>.</li>
       <li>If you are offered a full erase, decline it unless you want to lose your mode choice, Offense PIN and notification settings. Your SD card is never touched.</li>
     </ol>
     <p class="note unsupported" id="unsupported">This browser does not support WebSerial. Open this page in desktop Chrome or Edge, or flash with <code>esptool</code> using the assets on the release page.</p>
@@ -88,7 +88,7 @@
   }
   // Fill the version from the manifest so the page always names what it will flash.
   fetch('manifest.json').then(r => r.json()).then(m => {
-    if (m && m.version) document.getElementById('ver').textContent = 'v' + m.version;
+    if (m && m.version) document.getElementById('ver').textContent = m.version;
   }).catch(() => {});
 </script>
 </body>
